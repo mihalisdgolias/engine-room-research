@@ -204,7 +204,7 @@ const nav=document.getElementById("tabs"),main=document.getElementById("main");l
 const secs=TABS.map((t,i)=>{const b=el("button",null,t.name);b.setAttribute("role","tab");b.onclick=()=>go(i);nav.append(b);const s=el("section");s.setAttribute("role","tabpanel");const h=el("div","head"),x=el("div");x.append(el("h2",null,t.title),el("p",null,t.lead));h.append(x,svgIcon(t.ic));s.append(h);t.fn(s);main.append(s);return s});
 const prev=document.getElementById("prev"),next=document.getElementById("next");
 function go(i){cur=Math.max(0,Math.min(TABS.length-1,i));secs.forEach((s,k)=>s.classList.toggle("on",k===cur));[...nav.children].forEach((b,k)=>b.setAttribute("aria-selected",k===cur));nav.children[cur].scrollIntoView({block:"nearest",inline:"nearest"});document.getElementById("pos").textContent=`${cur+1} of ${TABS.length}`;prev.disabled=cur===0;next.disabled=cur===TABS.length-1;
- animate(secs[cur])}
+ try{history.replaceState(null,"","#"+slug(TABS[cur].name))}catch(e){}animate(secs[cur])}
 const still=matchMedia("(prefers-reduced-motion:reduce)").matches,next2=f=>requestAnimationFrame(()=>requestAnimationFrame(f));
 function animate(sec){
  sec.querySelectorAll(".fill").forEach(f=>{if(still){f.style.width=f.dataset.w;return}f.style.width="0";next2(()=>f.style.width=f.dataset.w)});
@@ -218,7 +218,10 @@ function animate(sec){
 const tip=document.getElementById("tip");
 function showTip(e){const n=e.target.closest&&e.target.closest("[data-tip]");if(!n){tip.style.display="none";return}tip.textContent=n.dataset.tip;tip.style.display="block";const x=e.clientX||0,y=e.clientY||0;tip.style.left=Math.max(6,Math.min(x+12,innerWidth-tip.offsetWidth-8))+"px";tip.style.top=Math.max(6,y-tip.offsetHeight-10)+"px"}
 addEventListener("pointermove",showTip);addEventListener("click",showTip);addEventListener("scroll",()=>tip.style.display="none",{passive:true});
-prev.onclick=()=>go(cur-1);next.onclick=()=>go(cur+1);addEventListener("keydown",e=>{if(e.key==="ArrowRight")go(cur+1);if(e.key==="ArrowLeft")go(cur-1)});go(0);
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const fromHash=()=>Math.max(0,TABS.findIndex(t=>slug(t.name)===location.hash.slice(1)));
+addEventListener("hashchange",()=>go(fromHash()));
+prev.onclick=()=>go(cur-1);next.onclick=()=>go(cur+1);addEventListener("keydown",e=>{if(e.key==="ArrowRight")go(cur+1);if(e.key==="ArrowLeft")go(cur-1)});go(fromHash());
 </script>
 </body>
 </html>
